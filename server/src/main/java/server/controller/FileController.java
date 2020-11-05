@@ -20,12 +20,14 @@ public class FileController {
     private static final String SERVER_URL = "http://localhost:8000/file/upload";
 
     @PostMapping("/upload")
-    public String upload(@RequestParam MultipartFile file, @RequestParam String nodeId) throws IOException {
-        String originalFilename = file.getOriginalFilename();
-        System.out.println(originalFilename);
-        System.out.println(nodeId);
-        File out = new File("f:\\" + originalFilename);
-        file.transferTo(out);
+    public String upload(@RequestParam("file") MultipartFile[] files, @RequestParam String nodeId) throws IOException {
+        for (MultipartFile file : files) {
+            String originalFilename = file.getOriginalFilename();
+            System.out.println(originalFilename);
+            System.out.println(nodeId);
+            File out = new File("f:\\" + originalFilename);
+            file.transferTo(out);
+        }
         return "upload ok";
     }
 }

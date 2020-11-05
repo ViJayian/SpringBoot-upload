@@ -19,6 +19,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * file
@@ -36,21 +38,23 @@ public class FileController {
     private RestTemplate restTemplate;
 
     @PostMapping("/upload")
-    public String upload(@RequestParam MultipartFile file, @RequestParam String nodeId) throws IOException {
+    public String upload(@RequestParam("file") MultipartFile[] files, @RequestParam String nodeId) throws IOException {
         MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
         //使用byteArrayResource
-        ByteArrayResource resource = new ByteArrayResource(file.getBytes()) {
-            //必须重写getFilename方法，否则restTemplate请求报错
-            @Override
-            public String getFilename() {
-                return file.getOriginalFilename();
-            }
-        };
-        map.add("file", resource);
+        for (MultipartFile file : files) {
+            ByteArrayResource resource = new ByteArrayResource(file.getBytes()) {
+                //必须重写getFilename方法，否则restTemplate请求报错
+                @Override
+                public String getFilename() {
+                    return file.getOriginalFilename();
+                }
+            };
+            map.add("file", resource);  //底层执行的是 List.add(value);
+        }
         map.add("nodeId", nodeId);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity<>(map,headers);
+        HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity<>(map, headers);
         String result = restTemplate.postForObject(SERVER_URL, entity, String.class);
         return "ok";
     }
